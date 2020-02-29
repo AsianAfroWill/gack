@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from repo import GackRepo
+from gack import GackRepo
 
 class ArgParser:
     def __init__(self):
@@ -76,6 +76,5 @@ def main(argv):
         else:
             raise Exception('Unknown command!')
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main(sys.argv[1:])
-    

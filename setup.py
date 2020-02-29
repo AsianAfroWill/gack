@@ -19,5 +19,10 @@ setuptools.setup(
     install_requires=[
         'gitpython',
     ],
+    entry_points={
+        "console_scripts": [
+            'gack=gack.__main__:main',
+        ],
+    },
 )
 
