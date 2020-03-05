@@ -62,20 +62,24 @@ class GackRepo:
                 return i
         return -1
 
-    def Pop(self):
+    def Pop(self, all=False):
         current_patch_index = self._FindPatchIndex(self.current_patch)
         if current_patch_index < 0:
             print('Cannot pop: not currently in a gack patch!')
         elif current_patch_index == 0:
             print('Cannot pop: already at bottom of stack!')
+        elif all:
+            self._CheckOut(self.stack[0])
         else:
             self._CheckOut(self.stack[current_patch_index - 1])
 
-    def Push(self, **kwargs):
-        if kwargs['branch']:
-            self._PushBranch(kwargs['branch'])
-        elif kwargs['new']:
-            self._PushNewBranch(kwargs['new'])
+    def Push(self, branch=None, newBranch=None):
+        if branch is not None:
+            if newBranch is not None:
+                raise Exception('Cannot create a branch and push a branch in one go')
+            self._PushBranch(branch)
+        elif newBranch is not None:
+            self._PushNewBranch(newBranch)
         else:
             self._PushOne()
 

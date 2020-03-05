@@ -47,6 +47,7 @@ class ArgParser:
 
     def pop(self, argv):
         parser = argparse.ArgumentParser(description='Pop a patch in gack')
+        parser.add_argument('--all', action='store_true', help='Pop all branches')
         return parser.parse_args(argv)
 
 
@@ -70,9 +71,9 @@ def main(argv):
         elif command == 'deinit':
             repo.Deinitialize()
         elif command == 'push':
-            repo.Push(branch=args.branch, new=args.new)
+            repo.Push(branch=args.branch, newBranch=args.new)
         elif command == 'pop':
-            repo.Pop()
+            repo.Pop(all=args.all)
         else:
             raise Exception('Unknown command!')
 
