@@ -2,6 +2,7 @@
 
 from git import Repo
 import os
+import subprocess
 
 '''
 Gack's view of a git repo.
@@ -93,9 +94,10 @@ class GackRepo:
         elif current_patch_index == len(self.stack) -1:
             print('Cannot push: no more patches in gack!')
         else:
+            base_patch = self.current_patch
             patch = self.stack[current_patch_index + 1]
             self._CheckOut(patch)
-            self._Rebase(self.current_patch)
+            self._Rebase(base_patch)
 
     def _PushBranch(self, branch_name):
         current_patch_index = self._FindCurrentPatchIndex()
@@ -105,10 +107,11 @@ class GackRepo:
         elif next_patch_index >= 0:
             print('Cannot push {}: already in gack!'.format(branch_name))
         else:
+            base_patch = self.current_patch
             self.stack.insert(current_patch_index + 1, branch_name)
             self._UpdateStackFile()
             self._CheckOut(branch_name)
-            self._Rebase(self.current_patch)
+            self._Rebase(base_patch)
 
     def _PushNewBranch(self, branch_name):
         current_patch_index = self._FindCurrentPatchIndex()
