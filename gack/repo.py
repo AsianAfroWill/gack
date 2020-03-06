@@ -105,10 +105,11 @@ class GackRepo:
         elif next_patch_index >= 0:
             print('Cannot push {}: already in gack!'.format(branch_name))
         else:
+            base_patch = self.current_patch
             self.stack.insert(current_patch_index + 1, branch_name)
             self._UpdateStackFile()
             self._CheckOut(branch_name)
-            self._Rebase(self.current_patch)
+            self._Rebase(base_patch)
 
     def _PushNewBranch(self, branch_name):
         current_patch_index = self._FindCurrentPatchIndex()
