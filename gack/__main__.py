@@ -50,6 +50,15 @@ class ArgParser:
         parser.add_argument('--all', action='store_true', help='Pop all branches')
         return parser.parse_args(argv)
 
+    def diff(self, argv):
+        parser = argparse.ArgumentParser(description='Upload a diff through arc')
+        parser.add_argument('--update', help='Update a given Phabricator diff')
+        parser.add_argument('--new', help='Create a new Phabricator diff')
+        return parser.parse_args(argv)
+
+    def land(self, argv):
+        parser = argparse.ArgumentParser(description='Land a diff through arc')
+        return parser.parse_args(argv)
 
 def main(argv):
     parser = ArgParser()
@@ -74,6 +83,10 @@ def main(argv):
             repo.Push(branch=args.branch, newBranch=args.new)
         elif command == 'pop':
             repo.Pop(all=args.all)
+        elif command == 'diff':
+            repo.ArcDiff(diffToUpdate=args.update)
+        elif command == 'land':
+            repo.ArcLand()
         else:
             raise Exception('Unknown command!')
 

@@ -62,10 +62,13 @@ class GackRepo:
                 return i
         return -1
 
+    def _FindCurrentPatchIndex(self):
+        return self._FindPatchIndex(self.current_patch)
+
     def Pop(self, all=False):
-        current_patch_index = self._FindPatchIndex(self.current_patch)
+        current_patch_index = self._FindCurrentPatchIndex()
         if current_patch_index < 0:
-            print('Cannot pop: not currently in a gack patch!')
+            print('Cannot pop: current branch not tracked in gack!')
         elif current_patch_index == 0:
             print('Cannot pop: already at bottom of stack!')
         elif all:
@@ -84,39 +87,36 @@ class GackRepo:
             self._PushOne()
 
     def _PushOne(self):
-        current_patch = self.current_patch
-        current_patch_index = self._FindPatchIndex(self.current_patch)
+        current_patch_index = self._FindCurrentPatchIndex()
         if current_patch_index < 0:
-            print('Cannot push: not currently in a gack patch!')
+            print('Cannot push: current branch not tracked in gack')
         elif current_patch_index == len(self.stack) -1:
             print('Cannot push: no more patches in gack!')
         else:
             patch = self.stack[current_patch_index + 1]
             self._CheckOut(patch)
-            self._Rebase(current_patch)
+            self._Rebase(self.current_patch)
 
     def _PushBranch(self, branch_name):
-        current_patch = self.current_patch
-        current_patch_index = self._FindPatchIndex(current_patch)
+        current_patch_index = self._FindCurrentPatchIndex()
         next_patch_index = self._FindPatchIndex(branch_name)
         if current_patch_index < 0:
-            print('Cannot push {}: not currently in a gack patch!'.format(branch_name))
+            print('Cannot push: current branch not tracked in gack')
         elif next_patch_index >= 0:
             print('Cannot push {}: already in gack!'.format(branch_name))
         else:
             self.stack.insert(current_patch_index + 1, branch_name)
             self._UpdateStackFile()
             self._CheckOut(branch_name)
-            self._Rebase(current_patch)
+            self._Rebase(self.current_patch)
 
     def _PushNewBranch(self, branch_name):
-        current_patch = self.current_patch
-        current_patch_index = self._FindPatchIndex(current_patch)
+        current_patch_index = self._FindCurrentPatchIndex()
         next_patch_index = self._FindPatchIndex(branch_name)
         if current_patch_index < 0:
-            print('Cannot push new branch {}: not currently in a gack patch!'.format(branch_name))
+            print('Cannot push: current branch not tracked in gack')
         else:
-            self._repo.create_head(branch_name, commit=current_patch)
+            self._repo.create_head(branch_name, commit=self.current_patch)
             self.stack.insert(current_patch_index + 1, branch_name)
             self._UpdateStackFile()
             self._CheckOut(branch_name)
@@ -156,3 +156,28 @@ class GackRepo:
                 self._PrintSpecial(GREY, patch)
             else:
                 print(patch)
+
+    def ArcDiff(self, diffToUpdate=None):
+        current_patch_index = self._FindCurrentPatchIndex()
+        if current_patch_index < 0:
+            print('Cannot diff: current branch not tracked in gack')
+        elif current_patch_index == 0:
+            print('Cannot diff bottom of stack! gack push first')
+        else:
+            prevPatch = self.stack[current_patch_index - 1]
+            arcDiffCommand = ['arc', 'diff']
+            if diffToUpdate is not None:
+                arcDiffCommand.extend(['--update', diffToUpdate])
+            arcDiffCommand.extend([prevPatch])
+            subprocess.run(arcDiffCommand, check=True)
+
+    def ArcLand(self):
+        current_patch_index = self._FindCurrentPatchIndex()
+        if current_patch_index < 0:
+            print('Cannot land: current branch not tracked in gack')
+        elif current_patch_index != 1:
+            print('Can only land first patch in stack!')
+        else:
+            subprocess.run(['arc', 'land'], check=True)
+            self.stack.pop(current_patch_index)
+            self._UpdateStackFile()
