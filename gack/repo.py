@@ -86,8 +86,8 @@ class GackRepo:
         else:
             base_patch = self.current_patch
             patch = self.stack[current_patch_index + 1]
-            self._CheckOut(patch)
-            self._Rebase(base_patch)
+            self._check_out(patch)
+            self._rebase(base_patch)
 
     def push_existing_branch(self, branch_name):
         current_patch_index = self._find_current_patch_index()
