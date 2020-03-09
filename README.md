@@ -17,6 +17,22 @@ Arc utilities:
 
 # Quick Getting-Started Guide
 
+## Installation
+
+To install, run
+
+```
+python3 setup.py install
+```
+
+To run:
+
+```
+python3 -m gack
+```
+
+## Usage
+
 First initialize the repo, with gack rooted on master:
 
 ```
@@ -117,7 +133,7 @@ M1 - M2   master
 
 Now gack is tracking 2 patches on top of master.
 
-gack here enables you to do some work on the branches as dependencies. For example, if we need to go back to `alpha` to fix a bug, we can `gack pop` and commmit the change (`A2`):`
+gack here enables you to do some work on the branches as dependencies. For example, if we need to go back to `alpha` to fix a bug, we can `gack pop` and commmit the change (`A2`):
 
 ```
 M1 - M2   master
