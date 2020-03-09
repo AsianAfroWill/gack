@@ -41,8 +41,9 @@ class ArgParser:
 
     def push(self, argv):
         parser = argparse.ArgumentParser(description='Push a patch in gack')
-        parser.add_argument('--branch', help='If provided, push the branch into gack')
-        parser.add_argument('--new', help='If provided, crease and push a new branch into gack')
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument('--branch', help='If provided, push the branch into gack')
+        group.add_argument('--new', help='If provided, crease and push a new branch into gack')
         return parser.parse_args(argv)
 
     def pop(self, argv):
@@ -80,7 +81,12 @@ def main(argv):
         elif command == 'deinit':
             repo.deinitialize()
         elif command == 'push':
-            repo.push(branch=args.branch, new_branch=args.new)
+            if args.branch is not None:
+                repo.push_existing_branch(args.branch)
+            elif args.new is not None:
+                repo.push_new_branch(args.new)
+            else:
+                repo.push_one()
         elif command == 'pop':
             repo.pop(all=args.all)
         elif command == 'diff':

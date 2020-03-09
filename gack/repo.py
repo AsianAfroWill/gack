@@ -77,17 +77,7 @@ class GackRepo:
         else:
             self._check_out(self.stack[current_patch_index - 1])
 
-    def push(self, branch=None, new_branch=None):
-        if branch is not None:
-            if new_branch is not None:
-                raise Exception('Cannot create a branch and push a branch in one go')
-            self._push_branch(branch)
-        elif new_branch is not None:
-            self._push_new_branch(new_branch)
-        else:
-            self._push_one()
-
-    def _push_one(self):
+    def push_one(self):
         current_patch_index = self._find_current_patch_index()
         if current_patch_index < 0:
             print('Cannot push: current branch not tracked in gack')
@@ -99,7 +89,7 @@ class GackRepo:
             self._CheckOut(patch)
             self._Rebase(base_patch)
 
-    def _push_branch(self, branch_name):
+    def push_existing_branch(self, branch_name):
         current_patch_index = self._find_current_patch_index()
         next_patch_index = self._find_patch_index(branch_name)
         if current_patch_index < 0:
@@ -113,7 +103,7 @@ class GackRepo:
             self._check_out(branch_name)
             self._rebase(base_patch)
 
-    def _push_new_branch(self, branch_name):
+    def push_new_branch(self, branch_name):
         current_patch_index = self._find_current_patch_index()
         next_patch_index = self._find_patch_index(branch_name)
         if current_patch_index < 0:
