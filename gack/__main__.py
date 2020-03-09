@@ -68,7 +68,7 @@ def main(argv):
 
     if command == 'init':
         if not repo.is_initialized:
-            repo.InitializeRepo(args.stack_root)
+            repo.initialize_repo(args.stack_root)
         else:
             print('This repo is already initialized!')
 
@@ -76,17 +76,17 @@ def main(argv):
         if not repo.is_initialized:
             print('This repo is not a gack repo, run `gack init` to initialize it')
         elif command == 'show':
-            repo.PrintStack()
+            repo.print_stack()
         elif command == 'deinit':
-            repo.Deinitialize()
+            repo.deinitialize()
         elif command == 'push':
-            repo.Push(branch=args.branch, newBranch=args.new)
+            repo.push(branch=args.branch, new_branch=args.new)
         elif command == 'pop':
-            repo.Pop(all=args.all)
+            repo.pop(all=args.all)
         elif command == 'diff':
-            repo.ArcDiff(diffToUpdate=args.update)
+            repo.arc_diff(diff_to_update=args.update)
         elif command == 'land':
-            repo.ArcLand()
+            repo.arc_land()
         else:
             raise Exception('Unknown command!')
 
