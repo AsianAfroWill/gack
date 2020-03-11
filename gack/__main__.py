@@ -2,16 +2,50 @@
 
 import argparse
 import sys
+import textwrap
 
 from gack import GackRepo
 
+PROG='gack'
+HELP_STRINGS = {
+    'init': 'Initialize a git repo for gack',
+    'show': 'Show gack stack',
+    'deinit': 'Deinitialize a gack repo',
+    'push': 'Push a patch in gack',
+    'pop': 'Pop a patch in gack',
+    'diff': 'Upload current patch as a diff through arc',
+    'land': 'Land current patch through arc',
+}
+
 class ArgParser:
+
     def __init__(self):
         pass
 
     def parse_args(self, argv):
-        parser = argparse.ArgumentParser(prog='gack', description='gack - Git stack utilities', usage='gack <cmmand> [<args>]')
-        parser.add_argument('command', help='Subcommand to run')
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                formatter_class=argparse.RawDescriptionHelpFormatter,
+                description=textwrap.dedent('''
+                gack - Git Stacking utilities
+
+                Repo Management:
+                  init      {init}
+                  deinit    {deinit}
+
+                Stack Operations:
+                  show      {show}
+                  push      {push}
+                  pop       {pop}
+
+                Arcanist/Phabricator Integrations:
+                  diff      {diff}
+                  land      {land}
+
+                Run '%(prog)s <command> --help' for more information on a command.
+                '''.format(**HELP_STRINGS)),
+                usage='%(prog)s <command> [<args>]')
+        parser.add_argument('command', help='Command to run')
 
         if len(argv) == 0:
             parser.print_help()
@@ -27,38 +61,59 @@ class ArgParser:
             return command, getattr(self, command)(argv[1:])
 
     def init(self, argv):
-        parser = argparse.ArgumentParser(description='Initialize a gack repo')
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                usage='%(prog)s init',
+                description=HELP_STRINGS['init'])
         parser.add_argument('stack_root', help='Ref that acts as the bottom of the stack, probably master')
         return parser.parse_args(argv)
 
     def show(self, argv):
-        parser = argparse.ArgumentParser(description='Show gack stack')
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                usage='%(prog)s show',
+                description=HELP_STRINGS['show'])
         return parser.parse_args(argv)
 
     def deinit(self, argv):
-        parser = argparse.ArgumentParser(description='De-initialize a gack repo')
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                usage='%(prog)s deinit',
+                description=HELP_STRINGS['deinit'])
         return parser.parse_args(argv)
 
     def push(self, argv):
-        parser = argparse.ArgumentParser(description='Push a patch in gack')
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                usage='%(prog)s push',
+                description=HELP_STRINGS['push'])
         group = parser.add_mutually_exclusive_group()
         group.add_argument('--branch', help='If provided, push the branch into gack')
         group.add_argument('--new', help='If provided, crease and push a new branch into gack')
         return parser.parse_args(argv)
 
     def pop(self, argv):
-        parser = argparse.ArgumentParser(description='Pop a patch in gack')
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                usage='%(prog)s pop',
+                description=HELP_STRINGS['pop'])
         parser.add_argument('--all', action='store_true', help='Pop all branches')
         return parser.parse_args(argv)
 
     def diff(self, argv):
-        parser = argparse.ArgumentParser(description='Upload a diff through arc')
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                usage='%(prog)s diff',
+                description=HELP_STRINGS['diff'])
         parser.add_argument('--update', help='Update a given Phabricator diff')
         parser.add_argument('--new', help='Create a new Phabricator diff')
         return parser.parse_args(argv)
 
     def land(self, argv):
-        parser = argparse.ArgumentParser(description='Land a diff through arc')
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                usage='%(prog)s land',
+                description=HELP_STRINGS['land'])
         return parser.parse_args(argv)
 
 def main(argv):
@@ -79,7 +134,9 @@ def main(argv):
         elif command == 'show':
             repo.print_stack()
         elif command == 'deinit':
-            repo.deinitialize()
+            response = input('gack will stop tracking your stack, are you sure? (y/N)')
+            if response == 'y' or response == 'Y':
+                repo.deinitialize()
         elif command == 'push':
             if args.branch is not None:
                 repo.push_existing_branch(args.branch)
