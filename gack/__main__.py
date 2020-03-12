@@ -116,8 +116,6 @@ class ArgParser:
                 prog=PROG,
                 usage='%(prog)s diff',
                 description=HELP_STRINGS['diff'])
-        parser.add_argument('--update', help='Update a given Phabricator diff')
-        parser.add_argument('--new', help='Create a new Phabricator diff')
         return parser.parse_args(argv)
 
     def land(self, argv):
@@ -125,6 +123,13 @@ class ArgParser:
                 prog=PROG,
                 usage='%(prog)s land',
                 description=HELP_STRINGS['land'])
+        return parser.parse_args(argv)
+
+    def log(self, argv):
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                usage='%(prog)s log',
+                description='Print some logs')
         return parser.parse_args(argv)
 
 def main(argv):
@@ -159,9 +164,11 @@ def main(argv):
         elif command == 'untrack':
             repo.untrack(branch=args.branch, delete=args.delete)
         elif command == 'diff':
-            repo.arc_diff(diff_to_update=args.update)
+            repo.arc_diff()
         elif command == 'land':
             repo.arc_land()
+        elif command == 'log':
+            repo._get_logs_in_patch()
         else:
             raise Exception('Unknown command!')
 

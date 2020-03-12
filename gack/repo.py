@@ -2,6 +2,7 @@
 
 from git import Repo
 import os
+import re
 import subprocess
 
 '''
@@ -164,7 +165,59 @@ class GackRepo:
             else:
                 print(patch)
 
-    def arc_diff(self, diff_to_update=None):
+    def _get_differntial_revision_in_patch(self, patch_index):
+        prev_patch_commit = None
+        if patch_index > 0:
+            prev_patch_commit = self._repo.commit(rev=self.stack[patch_index - 1])
+
+        curr_commit = self._repo.commit(rev=self.stack[patch_index])
+        while curr_commit is not None:
+            if prev_patch_commit is not None and curr_commit.name_rev == prev_patch_commit.name_rev:
+                # got to the last patch on the stack
+                break
+
+            matches = re.search(r'Differential Revision:\s+[a-z]+://[^\s]+/(D[0-9]+)', curr_commit.message)
+            if matches is not None:
+                return matches.group(1)
+
+            if len(curr_commit.parents) == 0:
+                # No more parents
+                break
+            curr_commit = curr_commit.parents[0]
+        return None
+
+    def _add_depends_on_if_appropriate(self):
+        current_patch_index = self._find_current_patch_index()
+        if current_patch_index < 1:
+            return
+
+        parent_diff = self._get_differntial_revision_in_patch(current_patch_index - 1)
+        if parent_diff is None:
+            return
+
+        curr_commit = self._repo.commit(rev=self.stack[current_patch_index])
+        prev_commit = self._repo.commit(rev=self.stack[current_patch_index - 1])
+
+        while curr_commit is not None:
+            if curr_commit.name_rev == prev_commit.name_rev:
+                # got to the last patch on the stack
+                break
+
+            matches = re.search(r'Depends on D[0-9]+', curr_commit.message)
+            if matches is not None:
+                # already has dependency
+                return
+
+            if len(curr_commit.parents) == 0:
+                # No more parents, this shouldn't happen
+                raise Exception('Unexpected state: Parent revision in gack is not a parent of current revision!')
+            curr_commit = curr_commit.parents[0]
+        
+        # if we get here, we did not find a dependency already marked
+        curr_commit_message = self._repo.commit(rev=self.stack[current_patch_index]).message
+        self._repo.git.commit('--amend', '-m', '{}\n\nDepends on {}'.format(curr_commit_message, parent_diff))
+
+    def arc_diff(self):
         current_patch_index = self._find_current_patch_index()
         if current_patch_index < 0:
             print('Cannot diff: current branch not tracked in gack')
@@ -173,9 +226,17 @@ class GackRepo:
         else:
             prev_patch = self.stack[current_patch_index - 1]
             arc_diff_command = ['arc', 'diff']
-            if diff_to_update is not None:
+
+            diff_to_update = self._get_differntial_revision_in_patch(current_patch_index)
+            if diff_to_update is None:
+                arc_diff_command.extend(['--create'])
+                parent_diff = self._get_differntial_revision_in_patch(current_patch_index - 1)
+                if parent_diff is not None:
+                    self._add_depends_on_if_appropriate()
+            else:
                 arc_diff_command.extend(['--update', diff_to_update])
             arc_diff_command.extend([prev_patch])
+
             subprocess.run(arc_diff_command, check=True)
 
     def arc_land(self):
