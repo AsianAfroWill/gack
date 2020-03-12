@@ -16,6 +16,7 @@ Stack Operations:
   push      Push a patch in gack
   pop       Pop a patch in gack
   diff      Show diff since previous patch in gack
+  log       Show log since previous patch in gack
   untrack   Stop tracking a patch in gack
 
 Arcanist/Phabricator Integrations:

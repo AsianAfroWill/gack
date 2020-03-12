@@ -84,11 +84,28 @@ class GackRepo:
     def diff(self):
         current_patch_index = self._find_current_patch_index()
         if current_patch_index < 0:
-            print('Cannot pop: current branch not tracked in gack!')
+            print('Cannot diff: current branch not tracked in gack!')
         elif current_patch_index == 0:
-            print('Cannot pop: already at bottom of stack!')
+            print('Cannot diff: already at bottom of stack!')
         else:
-            self._shell_out(['git', 'diff', self.stack[current_patch_index - 1]])
+            self._shell_out(['git', 'diff', self.stack[current_patch_index - 1]], check=False)
+
+    def log(self):
+        current_patch_index = self._find_current_patch_index()
+        if current_patch_index < 0:
+            print('Cannot log: current branch not tracked in gack!')
+        elif current_patch_index == 0:
+            print('Cannot log: already at bottom of stack!')
+        else:
+            self._shell_out(
+                [
+                    'git',
+                    'log',
+                    '--first-parent',
+                    '--no-merges',
+                    '{}..'.format(self.stack[current_patch_index - 1])
+                ],
+                check=False)
 
     def pop(self, all=False):
         current_patch_index = self._find_current_patch_index()
@@ -226,9 +243,9 @@ class GackRepo:
         curr_commit_message = self._repo.commit(rev=self.stack[current_patch_index]).message
         self._repo.git.commit('--amend', '-m', '{}\n\nDepends on {}'.format(curr_commit_message, parent_diff))
 
-    def _shell_out(self, command_args):
+    def _shell_out(self, command_args, check=True):
         print('> {}'.format(' '.join(command_args)))
-        subprocess.run(command_args, check=True)
+        subprocess.run(command_args, check=check)
 
     def arc_diff(self):
         current_patch_index = self._find_current_patch_index()

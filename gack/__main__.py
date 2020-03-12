@@ -15,6 +15,7 @@ HELP_STRINGS = {
     'pop': 'Pop a patch in gack',
     'untrack': 'Stop tracking a patch in gack',
     'diff': 'Show diff since previous patch in gack',
+    'log': 'Show logs since previous patch in gack',
     'arcdiff': 'Upload current patch as a diff through arc',
     'arcland': 'Land current patch through arc',
 }
@@ -40,6 +41,7 @@ class ArgParser:
                   push      {push}
                   pop       {pop}
                   diff      {diff} 
+                  log       {log} 
                   untrack   {untrack}
 
                 Arcanist/Phabricator Integrations:
@@ -111,6 +113,13 @@ class ArgParser:
                 description=HELP_STRINGS['diff'])
         return parser.parse_args(argv)
 
+    def log(self, argv):
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                usage='%(prog)s log',
+                description=HELP_STRINGS['log'])
+        return parser.parse_args(argv)
+
     def untrack(self, argv):
         parser = argparse.ArgumentParser(
                 prog=PROG,
@@ -172,6 +181,8 @@ def main(argv):
             repo.pop(all=args.all)
         elif command == 'diff':
             repo.diff()
+        elif command == 'log':
+            repo.log()
         elif command == 'untrack':
             repo.untrack(branch=args.branch, delete=args.delete)
         elif command == 'arcdiff':
