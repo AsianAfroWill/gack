@@ -66,6 +66,20 @@ class GackRepo:
     def _find_current_patch_index(self):
         return self._find_patch_index(self.current_patch)
 
+    def untrack(self, branch, delete=False):
+        patch_index = self._find_patch_index(branch)
+        current_patch_index = self._find_current_patch_index()
+        if patch_index < 0:
+            print('Cannot untrack: no branch named {}'.format(branch))
+        elif current_patch_index > patch_index:
+            print('Cannot untrack: branch {} is currently pushed'.format(branch))
+        else:
+            self.stack.pop(patch_index)
+            self._update_stack_file()
+
+            if delete:
+                self._repo.delete_head(branch, force=True)
+
     def pop(self, all=False):
         current_patch_index = self._find_current_patch_index()
         if current_patch_index < 0:

@@ -13,6 +13,7 @@ HELP_STRINGS = {
     'deinit': 'Deinitialize a gack repo',
     'push': 'Push a patch in gack',
     'pop': 'Pop a patch in gack',
+    'untrack': 'Stop tracking a patch in gack',
     'diff': 'Upload current patch as a diff through arc',
     'land': 'Land current patch through arc',
 }
@@ -37,6 +38,7 @@ class ArgParser:
                   show      {show}
                   push      {push}
                   pop       {pop}
+                  untrack   {untrack}
 
                 Arcanist/Phabricator Integrations:
                   diff      {diff}
@@ -100,6 +102,15 @@ class ArgParser:
         parser.add_argument('--all', action='store_true', help='Pop all branches')
         return parser.parse_args(argv)
 
+    def untrack(self, argv):
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                usage='%(prog)s untrack',
+                description=HELP_STRINGS['untrack'])
+        parser.add_argument('branch', help='Stop tracking the branch in gack; it remains tracked by git unless --delete is specified')
+        parser.add_argument('--delete', action='store_true', help='Also forcibly delete the branch')
+        return parser.parse_args(argv)
+
     def diff(self, argv):
         parser = argparse.ArgumentParser(
                 prog=PROG,
@@ -131,8 +142,7 @@ def main(argv):
     else:
         if not repo.is_initialized:
             print('This repo is not a gack repo, run `gack init` to initialize it')
-        elif command == 'show':
-            repo.print_stack()
+        elif command == 'show': repo.print_stack()
         elif command == 'deinit':
             response = input('gack will stop tracking your stack, are you sure? (y/N)')
             if response == 'y' or response == 'Y':
@@ -146,6 +156,8 @@ def main(argv):
                 repo.push_one()
         elif command == 'pop':
             repo.pop(all=args.all)
+        elif command == 'untrack':
+            repo.untrack(branch=args.branch, delete=args.delete)
         elif command == 'diff':
             repo.arc_diff(diff_to_update=args.update)
         elif command == 'land':
