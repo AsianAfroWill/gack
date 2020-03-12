@@ -14,8 +14,8 @@ HELP_STRINGS = {
     'push': 'Push a patch in gack',
     'pop': 'Pop a patch in gack',
     'untrack': 'Stop tracking a patch in gack',
-    'diff': 'Upload current patch as a diff through arc',
-    'land': 'Land current patch through arc',
+    'arcdiff': 'Upload current patch as a diff through arc',
+    'arcland': 'Land current patch through arc',
 }
 
 class ArgParser:
@@ -41,8 +41,8 @@ class ArgParser:
                   untrack   {untrack}
 
                 Arcanist/Phabricator Integrations:
-                  diff      {diff}
-                  land      {land}
+                  arcdiff   {arcdiff}
+                  arcland   {arcland}
 
                 Run '%(prog)s <command> --help' for more information on a command.
                 '''.format(**HELP_STRINGS)),
@@ -111,18 +111,18 @@ class ArgParser:
         parser.add_argument('--delete', action='store_true', help='Also forcibly delete the branch')
         return parser.parse_args(argv)
 
-    def diff(self, argv):
+    def arcdiff(self, argv):
         parser = argparse.ArgumentParser(
                 prog=PROG,
-                usage='%(prog)s diff',
-                description=HELP_STRINGS['diff'])
+                usage='%(prog)s arcdiff',
+                description=HELP_STRINGS['arcdiff'])
         return parser.parse_args(argv)
 
-    def land(self, argv):
+    def arcland(self, argv):
         parser = argparse.ArgumentParser(
                 prog=PROG,
-                usage='%(prog)s land',
-                description=HELP_STRINGS['land'])
+                usage='%(prog)s arcland',
+                description=HELP_STRINGS['arcland'])
         return parser.parse_args(argv)
 
     def log(self, argv):
@@ -163,9 +163,9 @@ def main(argv):
             repo.pop(all=args.all)
         elif command == 'untrack':
             repo.untrack(branch=args.branch, delete=args.delete)
-        elif command == 'diff':
+        elif command == 'arcdiff':
             repo.arc_diff()
-        elif command == 'land':
+        elif command == 'arcland':
             repo.arc_land()
         elif command == 'log':
             repo._get_logs_in_patch()
