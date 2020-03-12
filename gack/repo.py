@@ -81,6 +81,15 @@ class GackRepo:
             if delete:
                 self._repo.delete_head(branch, force=True)
 
+    def diff(self):
+        current_patch_index = self._find_current_patch_index()
+        if current_patch_index < 0:
+            print('Cannot pop: current branch not tracked in gack!')
+        elif current_patch_index == 0:
+            print('Cannot pop: already at bottom of stack!')
+        else:
+            self._shell_out(['git', 'diff', self.stack[current_patch_index - 1]])
+
     def pop(self, all=False):
         current_patch_index = self._find_current_patch_index()
         if current_patch_index < 0:
