@@ -2,18 +2,28 @@
 
 gack helps a git user use git like Mercurial Queues: gack provide the ability to push/pop and create patches and automatically rebases them.
 
-Currently supported commands are:
+From the command line, you can get help by running `gack --help`:
 
-- init
-- deinit
-- push
-- pop
-- show
+```
+gack - Git Stacking utilities
 
-Arc utilities:
+Repo Management:
+  init      Initialize a git repo for gack
+  deinit    Deinitialize a gack repo
 
-- diff
-- land
+Stack Operations:
+  show      Show gack stack
+  push      Push a patch in gack
+  pop       Pop a patch in gack
+  diff      Show diff since previous patch in gack
+  untrack   Stop tracking a patch in gack
+
+Arcanist/Phabricator Integrations:
+  arcdiff   Upload current patch as a diff through arc
+  arcland   Land current patch through arc
+
+Run 'gack <command> --help' for more information on a command.
+```
 
 # Quick Getting-Started Guide
 
@@ -29,6 +39,12 @@ To run:
 
 ```
 python3 -m gack
+```
+
+The documentation below assumes that you aliased the command `gack` to the above command:
+
+```
+alias gack='python3 -m gack'
 ```
 
 ## Usage
@@ -68,13 +84,13 @@ gack shells out to arc to use Arcanist to work with Phabricator. It always deals
 To upload a diff through arc:
 
 ```
-gack diff
+gack arcdiff
 ```
 
 To land a diff through arc:
 
 ```
-gack land
+gack arcland
 ```
 
 # Terminologies
@@ -167,4 +183,22 @@ M1 - M2   master
           A2 - B1  <- beta
 ```
 
-So generally when using gack at this point of development, it is most intuitive to keep a forward workflow and never edit the branches directly to keep things simple.
+So generally when using gack at this point of development, it is most intuitive to keep a forward workflow and never edit the branches directly to keep things simple. For example, if you need to make changes to the `alpha` branch, it is most straightward to commit new revisions to `alpha`:
+
+```
+M1 - M2   master
+      \
+       A1 - A1'  <- alpha (HEAD)
+         \
+          B1  <- beta
+```
+
+Then, when you `gack push`, gack will automatically do a rebase for you:
+
+```
+M1 - M2   master
+      \
+       A1 - A1'  <- alpha
+              \
+               B1  <- beta (HEAD)
+```
