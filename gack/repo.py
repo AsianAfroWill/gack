@@ -217,6 +217,10 @@ class GackRepo:
         curr_commit_message = self._repo.commit(rev=self.stack[current_patch_index]).message
         self._repo.git.commit('--amend', '-m', '{}\n\nDepends on {}'.format(curr_commit_message, parent_diff))
 
+    def _shell_out(self, command_args):
+        print('> {}'.format(' '.join(command_args)))
+        subprocess.run(command_args, check=True)
+
     def arc_diff(self):
         current_patch_index = self._find_current_patch_index()
         if current_patch_index < 0:
@@ -237,7 +241,7 @@ class GackRepo:
                 arc_diff_command.extend(['--update', diff_to_update])
             arc_diff_command.extend([prev_patch])
 
-            subprocess.run(arc_diff_command, check=True)
+            self._shell_out(arc_diff_command)
 
     def arc_land(self):
         current_patch_index = self._find_current_patch_index()
@@ -246,6 +250,6 @@ class GackRepo:
         elif current_patch_index != 1:
             print('Can only land first patch in stack!')
         else:
-            subprocess.run(['arc', 'land'], check=True)
+            self._shell_out(['arc', 'land'])
             self.stack.pop(current_patch_index)
             self._update_stack_file()
