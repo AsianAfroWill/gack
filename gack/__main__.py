@@ -71,7 +71,7 @@ class ArgParser:
                 prog=PROG,
                 usage='%(prog)s init',
                 description=HELP_STRINGS['init'])
-        parser.add_argument('stack_root', help='Ref that acts as the bottom of the stack, probably master')
+        parser.add_argument('stack_root', default='master', help='Ref that acts as the bottom of the stack, defaults to master')
         return parser.parse_args(argv)
 
     def show(self, argv):
@@ -150,6 +150,13 @@ class ArgParser:
                 description='Print some logs')
         return parser.parse_args(argv)
 
+    def debug(self, argv):
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                usage='%(prog)s debug',
+                description='Do some debugging')
+        return parser.parse_args(argv)
+
 def main(argv):
     parser = ArgParser()
     command, args = parser.parse_args(argv)
@@ -189,8 +196,8 @@ def main(argv):
             repo.arc_diff()
         elif command == 'arcland':
             repo.arc_land()
-        elif command == 'log':
-            repo._get_logs_in_patch()
+        elif command == 'debug':
+            repo._debug()
         else:
             raise Exception('Unknown command!')
 
