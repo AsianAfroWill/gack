@@ -171,7 +171,7 @@ class GackRepo:
         self._find_branch(branch).checkout()
 
     def _rebase(self, branch):
-        self._repo.git.rebase(branch)
+        self._repo.git.rebase('--fork-point', branch)
 
     def _print_special(self, color, some_string):
         END = '\033[0m'
