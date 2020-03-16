@@ -257,14 +257,18 @@ class GackRepo:
             prev_patch = self.stack[current_patch_index - 1]
             arc_diff_command = ['arc', 'diff']
 
-            diff_to_update = self._get_differntial_revision_in_patch(current_patch_index)
-            if diff_to_update is None:
-                arc_diff_command.extend(['--create'])
-                parent_diff = self._get_differntial_revision_in_patch(current_patch_index - 1)
-                if parent_diff is not None:
-                    self._add_depends_on_if_appropriate()
-            else:
-                arc_diff_command.extend(['--update', diff_to_update])
+            if current_patch_index > 1:
+                # only calculate dependent diff is parent patch is not root patch
+                diff_to_update = self._get_differntial_revision_in_patch(current_patch_index)
+                if diff_to_update is None:
+                    arc_diff_command.extend(['--create'])
+                    parent_diff = self._get_differntial_revision_in_patch(current_patch_index - 1)
+                    if parent_diff is not None:
+                        self._add_depends_on_if_appropriate()
+                else:
+                    arc_diff_command.extend(['--update', diff_to_update])
+
+            # Start diff from previous patch
             arc_diff_command.extend([prev_patch])
 
             self._shell_out(arc_diff_command)
