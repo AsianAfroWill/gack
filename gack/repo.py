@@ -288,8 +288,10 @@ class GackRepo:
                 if patch_root is None:
                     # no commits in branch, just point the branch
                     head = self._find_head(self._stack[i])
+                    print('Resetting {} to {}'.format(head, last_parent))
                     head.reset(commit=last_parent)
                 else:
+                    print('Setting {} parent to {}'.format(patch_root, last_parent))
                     patch_root.parents[0] = last_parent
                 last_parent = self._repo.commit(rev=self._stack[i])
 
