@@ -195,9 +195,8 @@ class GackRepo:
         current_commit = self._repo.commit(rev=current_patch)
         parent_commit = self._repo.commit(rev=parent_patch)
 
-        while current_commit is None or \
-                parent_commit is not None and \
-                parent_commit.name_rev == current_commit.name_rev:
+        while current_commit is not None and parent_commit is not None and \
+                parent_commit.name_rev != current_commit.name_rev:
             yield current_commit
 
             if len(current_commit.parents) == 0:
@@ -274,59 +273,7 @@ class GackRepo:
         elif current_patch_index != 1:
             print('Can only land first patch in stack!')
         else:
-            # map a branch to its root commit, which should be rebased to the last branch
-            branch_to_root_commit = self._branch_to_root_commit_map()
-
-            self._shell_out(['arc', 'land'])
+            self._shell_out(['arc', 'land', '--merge'])
             self._stack.pop(current_patch_index)
             self._update_stack_file()
 
-            # change the parent of the root of a branch to the previous branch in gack
-            last_parent = self._repo.commit(rev=self._stack[0])
-            for i in range(1, len(self._stack)):
-                patch_root = branch_to_root_commit[self._stack[i]]
-                if patch_root is None:
-                    # no commits in branch, just point the branch
-                    head = self._find_head(self._stack[i])
-                    print('Resetting {} to {}'.format(head, last_parent))
-                    head.reset(commit=last_parent)
-                else:
-                    print('Setting {} parent to {}'.format(patch_root, last_parent))
-                    patch_root.parents[0] = last_parent
-                last_parent = self._repo.commit(rev=self._stack[i])
-
-    def _branch_to_root_commit_map(self):
-        branch_to_root_commit = {}
-        for i in range(len(self._stack) - 1, 0, -1):
-            root_commit = None
-            for commit in self._patches_in_reverse(self._stack[i], self._stack[i - 1]):
-                root_commit = commit
-            branch_to_root_commit[self._stack[i]] = root_commit
-
-        return branch_to_root_commit
-
-    def _find_head(self, name):
-        for head in self._repo.heads:
-            if head.name == name:
-                return head
-        return None
-
-    def _debug(self):
-        branch_to_root_commit = self._branch_to_root_commit_map()
-
-        print("self._shell_out(['arc', 'land'])");
-        self._stack.pop(1)
-        print("self._update_stack_file(): {}".format(self._stack))
-
-        # rebase each patch
-        last_parent = self._repo.commit(rev=self._stack[0])
-        for i in range(1, len(self._stack)):
-            patch_root = branch_to_root_commit[self._stack[i]]
-            if patch_root is None:
-                # no commits in branch, just point the branch
-                print('No patch root found: reset the branch')
-                head = self._find_head(self._stack[i])
-                print("{}.reset(commit={})".format(head, last_parent))
-            else:
-                print('{}.parents[0] = {}'.format(patch_root, last_parent))
-            last_parent = self._repo.commit(rev=self._stack[i])
