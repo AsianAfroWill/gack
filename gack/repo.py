@@ -4,6 +4,7 @@ from git import Repo
 import os
 import re
 import subprocess
+import sys
 
 '''
 Gack's view of a git repo.
@@ -253,7 +254,11 @@ class GackRepo:
 
     def _shell_out(self, command_args, check=True):
         print('> {}'.format(' '.join(command_args)))
-        subprocess.run(command_args, check=check)
+        try:
+            subprocess.check_call(command_args)
+        except subprocess.CalledProcessError as e:
+            print(str(e), file=sys.stderr)
+            sys.exit(e.returncode)
 
     def arc_diff(self):
         current_patch_index = self._find_current_patch_index()
