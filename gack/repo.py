@@ -6,6 +6,12 @@ import re
 import subprocess
 import sys
 
+class Color:
+    END = '\033[0m'
+    BOLD = '\033[47m'
+    GREY = '\033[30m'
+    RED = '\033[31m'
+
 '''
 Gack's view of a git repo.
 A Gack is a stack of git branches/refs.
@@ -15,6 +21,7 @@ You can push and pop patches in the stack.
 class GackRepo:
     GACK_DIR = os.path.join('.git', 'gack')
     STACK_PATH = os.path.join(GACK_DIR, 'stack')
+    DIFF_REVISION_RE = r'Differential Revision:\s+([a-z]+://[^\s]+/(D[0-9]+))'
 
     def __init__(self):
         self._repo = Repo.init(os.getcwd())
@@ -175,13 +182,9 @@ class GackRepo:
         self._repo.git.rebase('--fork-point', branch)
 
     def _format_color(self, color, some_string):
-        END = '\033[0m'
-        return color + some_string + END
+        return color + some_string + Color.END
 
     def print_stack(self):
-        BOLD = '\033[47m'
-        GREY = '\033[30m'
-
         current_patch_found = False
         for i in range(len(self._stack)):
             patch = self._stack[i]
@@ -189,26 +192,47 @@ class GackRepo:
             output_strings = []
 
             if patch == self.current_patch:
-                patch_string = self._format_color(BOLD, patch)
+                patch_string = self._format_color(Color.BOLD, patch)
                 current_patch_found = True
             elif current_patch_found:
-                patch_string = self._format_color(GREY, patch)
+                patch_string = self._format_color(Color.GREY, patch)
             else:
                 patch_string = patch
             output_strings.append(patch_string)
 
             if i > 0:
-                diff = self._get_differntial_revision_in_patch(i, full_diff_url=True)
-                if diff is not None:
-                    output_strings.append(self._format_color(GREY, diff))
+                diff_status_string = None
+                root_commit = self._repo.commit(rev=self._stack[0])
+
+                for commit in self._commits_in_reverse(self._stack[i], self._stack[i - 1]):
+                    if diff_status_string is None:
+                        # haven't found the diff rev string yet
+                        matches = re.search(GackRepo.DIFF_REVISION_RE, commit.message)
+                        if matches is not None:
+                            diff_status_string = self._format_color(Color.GREY, matches.group(1))
+                            # only do rebase check on patches > 1
+                            if i <= 1:
+                                break
+                    elif i > 1:
+                        # already found a diff rev, do a rebase check if we're on patch > 1
+                        parent = commit.parents[0]
+                        if parent is not None and parent.name_rev == root_commit.name_rev:
+                            # current patch is rooted on patch 0, we need to rebase
+                            diff_status_string = self._format_color(Color.RED, 'Needs rebase!')
+
+                if diff_status_string is not None:
+                    output_strings.append(diff_status_string)
 
             print(' '.join(output_strings))
 
     def _commits_in_reverse(self, current_patch, parent_patch):
         current_commit = self._repo.commit(rev=current_patch)
         parent_commit = self._repo.commit(rev=parent_patch)
+        # this can happen if one of the patches needs rebasing
+        root_commit = self._repo.commit(rev=self._stack[0])
 
         while current_commit is not None and parent_commit is not None and \
+                root_commit.name_rev != current_commit.name_rev and \
                 parent_commit.name_rev != current_commit.name_rev:
             yield current_commit
 
@@ -217,18 +241,15 @@ class GackRepo:
             else:
                 current_commit = current_commit.parents[0]
 
-    def _get_differntial_revision_in_patch(self, patch_index, full_diff_url=False):
+    def _get_differential_revision_in_patch(self, patch_index):
         prev_patch = None
         if patch_index > 0:
             prev_patch = self._stack[patch_index - 1]
 
         for commit in self._commits_in_reverse(self._stack[patch_index], prev_patch):
-            matches = re.search(r'Differential Revision:\s+([a-z]+://[^\s]+/(D[0-9]+))', commit.message)
+            matches = re.search(GackRepo.DIFF_REVISION_RE, commit.message)
             if matches is not None:
-                if full_diff_url:
-                    return matches.group(1)
-                else:
-                    return matches.group(2)
+                return matches.group(2)
         return None
 
     def _add_depends_on_if_appropriate(self):
@@ -236,7 +257,7 @@ class GackRepo:
         if current_patch_index < 1:
             return
 
-        parent_diff = self._get_differntial_revision_in_patch(current_patch_index - 1)
+        parent_diff = self._get_differential_revision_in_patch(current_patch_index - 1)
         if parent_diff is None:
             return
 
@@ -272,10 +293,10 @@ class GackRepo:
 
             if current_patch_index > 1:
                 # only calculate dependent diff is parent patch is not root patch
-                diff_to_update = self._get_differntial_revision_in_patch(current_patch_index)
+                diff_to_update = self._get_differential_revision_in_patch(current_patch_index)
                 if diff_to_update is None:
                     arc_diff_command.extend(['--create'])
-                    parent_diff = self._get_differntial_revision_in_patch(current_patch_index - 1)
+                    parent_diff = self._get_differential_revision_in_patch(current_patch_index - 1)
                     if parent_diff is not None:
                         self._add_depends_on_if_appropriate()
                 else:
