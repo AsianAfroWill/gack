@@ -214,11 +214,17 @@ class GackRepo:
                             if i <= 1:
                                 break
                     elif i > 1:
+                        if len(commit.parents) == 0:
+                            # Expecting to see parents, branch detached somehow?
+                            diff_status_string = self._format_color(Color.RED, 'Unrooted!')
+                            break
+
                         # already found a diff rev, do a rebase check if we're on patch > 1
                         parent = commit.parents[0]
                         if parent is not None and parent.name_rev == root_commit.name_rev:
                             # current patch is rooted on patch 0, we need to rebase
                             diff_status_string = self._format_color(Color.RED, 'Needs rebase!')
+                            break
 
                 if diff_status_string is not None:
                     output_strings.append(diff_status_string)
