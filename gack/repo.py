@@ -287,7 +287,7 @@ class GackRepo:
             print(str(e), file=sys.stderr)
             sys.exit(e.returncode)
 
-    def arc_diff(self):
+    def arc_diff(self, edit_diff):
         current_patch_index = self._find_current_patch_index()
         if current_patch_index < 0:
             print('Cannot diff: current branch not tracked in gack')
@@ -308,6 +308,9 @@ class GackRepo:
                 else:
                     arc_diff_command.extend(['--update', diff_to_update])
 
+            if edit_diff:
+                arc_diff_command.extend(['--edit'])
+
             # Start diff from previous patch
             arc_diff_command.extend([prev_patch])
 
@@ -320,7 +323,7 @@ class GackRepo:
         elif current_patch_index != 1:
             print('Can only land first patch in stack!')
         else:
-            self._shell_out(['arc', 'land', '--merge'])
+            self._shell_out(['arc', 'land'])
             self._stack.pop(current_patch_index)
             self._update_stack_file()
 

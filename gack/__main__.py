@@ -134,6 +134,7 @@ class ArgParser:
                 prog=PROG,
                 usage='%(prog)s arcdiff',
                 description=HELP_STRINGS['arcdiff'])
+        parser.add_argument('--edit', action='store_true', help='Edit before updating diff')
         return parser.parse_args(argv)
 
     def arcland(self, argv):
@@ -193,7 +194,7 @@ def main(argv):
         elif command == 'untrack':
             repo.untrack(branch=args.branch, delete=args.delete)
         elif command == 'arcdiff':
-            repo.arc_diff()
+            repo.arc_diff(edit_diff=args.edit)
         elif command == 'arcland':
             repo.arc_land()
         elif command == 'debug':
