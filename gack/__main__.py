@@ -79,6 +79,7 @@ class ArgParser:
                 prog=PROG,
                 usage='%(prog)s show',
                 description=HELP_STRINGS['show'])
+        parser.add_argument('--phab', action='store_true', help='Also show Phabrication links')
         return parser.parse_args(argv)
 
     def deinit(self, argv):
@@ -173,7 +174,8 @@ def main(argv):
     else:
         if not repo.is_initialized:
             print('This repo is not a gack repo, run `gack init` to initialize it')
-        elif command == 'show': repo.print_stack()
+        elif command == 'show':
+            repo.print_stack(show_phab=args.phab)
         elif command == 'deinit':
             response = input('gack will stop tracking your stack, are you sure? (y/N)')
             if response == 'y' or response == 'Y':

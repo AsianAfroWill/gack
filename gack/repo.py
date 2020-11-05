@@ -184,7 +184,7 @@ class GackRepo:
     def _format_color(self, color, some_string):
         return color + some_string + Color.END
 
-    def print_stack(self):
+    def print_stack(self, show_phab):
         current_patch_found = False
         for i in range(len(self._stack)):
             patch = self._stack[i]
@@ -200,7 +200,7 @@ class GackRepo:
                 patch_string = patch
             output_strings.append(patch_string)
 
-            if i > 0:
+            if show_phab and i > 0:
                 diff_status_string = None
                 root_commit = self._repo.commit(rev=self._stack[0])
 
