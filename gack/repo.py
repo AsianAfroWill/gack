@@ -126,7 +126,7 @@ class GackRepo:
         else:
             self._check_out(self._stack[current_patch_index - 1])
 
-    def push_one(self):
+    def push_one(self, rebase):
         current_patch_index = self._find_current_patch_index()
         if current_patch_index < 0:
             print('Cannot push: current branch not tracked in gack')
@@ -136,9 +136,10 @@ class GackRepo:
             base_patch = self.current_patch
             patch = self._stack[current_patch_index + 1]
             self._check_out(patch)
-            self._rebase(base_patch)
+            if rebase:
+                self._rebase(base_patch)
 
-    def push_existing_branch(self, branch_name):
+    def push_existing_branch(self, branch_name, rebase):
         current_patch_index = self._find_current_patch_index()
         next_patch_index = self._find_patch_index(branch_name)
         if current_patch_index < 0:
@@ -150,7 +151,8 @@ class GackRepo:
             self._stack.insert(current_patch_index + 1, branch_name)
             self._update_stack_file()
             self._check_out(branch_name)
-            self._rebase(base_patch)
+            if rebase:
+                self._rebase(base_patch)
 
     def push_new_branch(self, branch_name):
         current_patch_index = self._find_current_patch_index()

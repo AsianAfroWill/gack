@@ -97,6 +97,7 @@ class ArgParser:
         group = parser.add_mutually_exclusive_group()
         group.add_argument('--branch', help='If provided, push the branch into gack')
         group.add_argument('--new', help='If provided, crease and push a new branch into gack')
+        group.add_argument('--rebase', action='store_true', help='If provided, automatically rebase')
         return parser.parse_args(argv)
 
     def pop(self, argv):
@@ -182,11 +183,11 @@ def main(argv):
                 repo.deinitialize()
         elif command == 'push':
             if args.branch is not None:
-                repo.push_existing_branch(args.branch)
+                repo.push_existing_branch(args.branch, args.rebase)
             elif args.new is not None:
                 repo.push_new_branch(args.new)
             else:
-                repo.push_one()
+                repo.push_one(args.rebase)
         elif command == 'pop':
             repo.pop(all=args.all)
         elif command == 'diff':
