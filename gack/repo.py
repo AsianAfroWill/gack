@@ -12,6 +12,8 @@ class Color:
     GREY = '\033[30m'
     RED = '\033[31m'
 
+MAX_COMMITS = 15
+
 '''
 Gack's view of a git repo.
 A Gack is a stack of git branches/refs.
@@ -239,12 +241,14 @@ class GackRepo:
         # this can happen if one of the patches needs rebasing
         root_commit = self._repo.commit(rev=self._stack[0])
 
+        commits_yielded = 0
         while current_commit is not None and parent_commit is not None and \
                 root_commit.name_rev != current_commit.name_rev and \
                 parent_commit.name_rev != current_commit.name_rev:
             yield current_commit
 
-            if len(current_commit.parents) == 0:
+            commits_yielded += 1
+            if commits_yielded > MAX_COMMITS or len(current_commit.parents) == 0:
                 current_commit = None
             else:
                 current_commit = current_commit.parents[0]
