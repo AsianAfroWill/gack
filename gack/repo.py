@@ -26,6 +26,8 @@ class GackRepo:
     DIFF_REVISION_RE = r'Differential Revision:\s+([a-z]+://[^\s]+/(D[0-9]+))'
 
     def __init__(self):
+        if not os.path.exists(os.path.join(os.getcwd(), '.git')):
+            raise Exception('Not a git repo!')
         self._repo = Repo.init(os.getcwd())
         self._stack_cache = None
 
