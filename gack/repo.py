@@ -190,6 +190,20 @@ class GackRepo:
     def _format_color(self, color, some_string):
         return color + some_string + Color.END
 
+    def rebase_one(self):
+        current_patch_index = self._find_current_patch_index()
+        if current_patch_index < 0:
+            print('Cannot push: current branch not tracked in gack')
+        elif current_patch_index == 0:
+            print('Cannot rebase first patch in gack!')
+        else:
+            base_patch = self.current_patch
+            self._shell_out(['git', 'rebase', '-i', self._stack[current_patch_index - 1]], check=False)
+
+    def edit_gack_file(self):
+        if self.is_initialized:
+            self._shell_out(['vim', self._path(GackRepo.STACK_PATH)], check=False)
+
     def print_stack(self, show_phab):
         current_patch_found = False
         for i in range(len(self._stack)):

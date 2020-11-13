@@ -16,6 +16,8 @@ HELP_STRINGS = {
     'untrack': 'Stop tracking a patch in gack',
     'diff': 'Show diff since previous patch in gack',
     'log': 'Show logs since previous patch in gack',
+    'rebase': 'Interactive rebase to last patch',
+    'edit': 'Edit the gack stack file',
     'arcdiff': 'Upload current patch as a diff through arc',
     'arcland': 'Land current patch through arc',
 }
@@ -42,6 +44,8 @@ class ArgParser:
                   pop       {pop}
                   diff      {diff} 
                   log       {log} 
+                  rebase    {rebase}
+                  edit      {edit}
                   untrack   {untrack}
 
                 Arcanist/Phabricator Integrations:
@@ -113,6 +117,20 @@ class ArgParser:
                 prog=PROG,
                 usage='%(prog)s diff',
                 description=HELP_STRINGS['diff'])
+        return parser.parse_args(argv)
+
+    def rebase(self, argv):
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                usage='%(prog)s rebase',
+                description=HELP_STRINGS['rebase'])
+        return parser.parse_args(argv)
+
+    def edit(self, argv):
+        parser = argparse.ArgumentParser(
+                prog=PROG,
+                usage='%(prog)s edit',
+                description=HELP_STRINGS['edit'])
         return parser.parse_args(argv)
 
     def log(self, argv):
@@ -194,6 +212,10 @@ def main(argv):
             repo.diff()
         elif command == 'log':
             repo.log()
+        elif command == 'rebase':
+            repo.rebase_one()
+        elif command == 'edit':
+            repo.edit_gack_file()
         elif command == 'untrack':
             repo.untrack(branch=args.branch, delete=args.delete)
         elif command == 'arcdiff':
